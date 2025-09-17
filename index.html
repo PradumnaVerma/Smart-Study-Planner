@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Study Planner</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --glass: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 4px 20px rgba(255,255,255,0.3); }
+            to { text-shadow: 0 4px 40px rgba(255,255,255,0.6); }
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        .control-panel {
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.35);
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--glass-border);
+            border-radius: 15px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            
+        }
+       
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .stats-overview {
+            padding: 25px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* Priority select base styling */
+        #priority {
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.12s ease;
+        }
+
+        /* When user clicks/focuses the priority select, highlight its background */
+        #priority:focus,
+        #priority:active {
+            outline: none;
+            background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18), inset 0 0 0 2px rgba(255,255,255,0.06);
+            transform: translateY(-2px);
+        }
+
+        /* Slight color hint for the dropdown options while open/focused */
+        #priority option {
+            background: rgba(44, 62, 80, 0.95);
+            color: #fff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 25px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .subject-card {
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .subject-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary);
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .subject-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-transform: capitalize;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .subject-progress {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            background: var(--glass);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .topic-item {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-item:hover {
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .topic-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .topic-item:hover::before {
+            width: 8px;
+        }
+
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .topic-name {
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            text-transform: capitalize;
+        }
+
+        .topic-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-not-started {
+            background: rgba(255, 99, 99, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .badge-in-progress {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .badge-completed {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--success);
+            border-radius: 6px;
+            transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: progressShimmer 2s infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .task-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .task-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass);
+            border-radius: 10px;
+            padding: 10px 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .task-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .topic-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .streak-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffc107;
+            font-weight: 600;
+            background: rgba(255, 193, 7, 0.1);
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .motivational-quotes {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            position: relative;
+        }
+
+        .quote {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .quote-author {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+        }
+
+        .empty-state h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            font-weight: 700;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        .time-tracker {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .timer-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes" id="floatingShapes"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Smart Study Planner</h1>
+            <p>Transform your learning journey with intelligent progress tracking</p>
+        </div>
+
+        <div id="statsOverview" class="glass-card stats-overview" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div id="totalSubjects" class="stat-number">0</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-item">
+                    <div id="totalTopics" class="stat-number">0</div>
+                    <div class="stat-label">Topics</div>
+                </div>
+                <div class="stat-item">
+                    <div id="completedTopics" class="stat-number">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div id="overallProgress" class="stat-number">0%</div>
+                    <div class="stat-label">Overall Progress</div>
+                </div>
+                <div class="stat-item">
+                    <div id="studyStreak" class="stat-number">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div id="totalStudyTime" class="stat-number">0h</div>
+                    <div class="stat-label">Study Time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card control-panel">
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="toggleBulkAdd()">
+                    📝 Bulk Add Topics
+                </button>
+                <button class="quick-btn" onclick="exportData()">
+                    💾 Export Progress
+                </button>
+                <button class="quick-btn" onclick="toggleDarkMode()">
+                    🌙 Dark Mode
+                </button>
+                <button class="quick-btn" onclick="showMotivation()">
+                    ⚡ Get Motivated
+                </button>
+            </div>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="subjectName">📚 Subject Name</label>
+                    <input type="text" id="subjectName" placeholder="e.g., Advanced Mathematics">
+                </div>
+                <div class="input-group">
+                    <label for="topicName">🎯 Topic Name</label>
+                    <input type="text" id="topicName" placeholder="e.g., Differential Calculus">
+                </div>
+                <div class="input-group">
+                    <label for="totalTasks">✅ Total Tasks</label>
+                    <input type="number" id="totalTasks" placeholder="15" min="1" value="10">
+                </div>
+                <div class="input-group">
+                    <label for="priority">⭐ Priority</label>
+                    <select id="priority">
+                        <option value="low">Low Priority</option>
+                        <option value="medium" selected>Medium Priority</option>
+                        <option value="high">High Priority</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="deadline">📅 Deadline</label>
+                    <input type="date" id="deadline">
+                </div>
+                <div class="input-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="addTopic()">
+                        ✨ Add Topic
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="motivationalQuotes" class="glass-card motivational-quotes" style="display: none;">
+            <div class="quote" id="currentQuote"></div>
+            <div class="quote-author" id="currentAuthor"></div>
+        </div>
+
+        <div id="subjectsContainer">
+            <div class="empty-state">
+                <h2>🎓 Ready to Unlock Your Potential?</h2>
+                <p>Create your first study plan and watch your knowledge grow exponentially!</p>
+                <button class="btn btn-primary" onclick="document.getElementById('subjectName').focus()">
+                    🚀 Start Your Journey
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="celebration" class="celebration"></div>
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let studyPlan = {};
+        let studyStreak = 0;
+        let totalStudyTime = 0;
+        let activeTimers = {};
+        let darkMode = false;
+
+        // used to avoid saving to localStorage every second while timer runs
+        let lastTimerSave = 0;
+        const TIMER_SAVE_INTERVAL = 5000; // ms
+
+        const STORAGE_KEY = 'smartStudyPlanner_v1';
+
+        const motivationalQuotes = [
+            ["The expert in anything was once a beginner.", "Robin Sharma"],
+            ["Success is the sum of small efforts repeated day in and day out.", "Robert Collier"],
+            ["Don't watch the clock; do what it does. Keep going.", "Sam Levenson"],
+            ["The beautiful thing about learning is that no one can take it away from you.", "B.B. King"],
+            ["Education is the most powerful weapon which you can use to change the world.", "Nelson Mandela"],
+            ["The only impossible journey is the one you never begin.", "Tony Robbins"]
+        ];
+
+        // Initialize floating shapes
+        function createFloatingShapes() {
+            const container = document.getElementById('floatingShapes');
+            for (let i = 0; i < 15; i++) {
+                const shape = document.createElement('div');
+                shape.className = 'shape';
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.width = shape.style.height = Math.random() * 60 + 20 + 'px';
+                shape.style.animationDelay = Math.random() * 20 + 's';
+                shape.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(shape);
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function celebrateCompletion() {
+            const celebration = document.getElementById('celebration');
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b'][Math.floor(Math.random() * 5)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                celebration.appendChild(confetti);
+            }
+            setTimeout(() => {
+                celebration.innerHTML = '';
+            }, 3000);
+        }
+
+        // --- Local Storage Persistence ---
+        function saveData() {
+            try {
+                const data = {
+                    studyPlan,
+                    studyStreak,
+                    totalStudyTime
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Failed to save data to localStorage', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.studyPlan) {
+                    studyPlan = parsed.studyPlan || {};
+                    studyStreak = parsed.studyStreak || 0;
+                    totalStudyTime = parsed.totalStudyTime || 0;
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Failed to load data from localStorage', e);
+            }
+            return false;
+        }
+
+        // Optional: allow clearing storage (uncomment to expose a button)
+        function clearSavedData() {
+            if (!confirm('Clear all saved study data? This cannot be undone.')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            studyPlan = {};
+            studyStreak = 0;
+            totalStudyTime = 0;
+            activeTimers = {};
+            updateDisplay();
+            showNotification('Saved data cleared', 'warning');
+        }
+        // --- end persistence ---
+
+        function addTopic() {
+            const subjectName = document.getElementById('subjectName').value.trim();
+            const topicName = document.getElementById('topicName').value.trim();
+            const totalTasks = parseInt(document.getElementById('totalTasks').value);
+            const priority = document.getElementById('priority').value;
+            const deadline = document.getElementById('deadline').value;
+
+            if (!subjectName || !topicName || !totalTasks) {
+                showNotification('Please fill in all required fields!', 'warning');
+                return;
+            }
+
+            if (!studyPlan[subjectName]) {
+                studyPlan[subjectName] = {};
+            }
+
+            studyPlan[subjectName][topicName] = {
+                totalTasks: totalTasks,
+                completedTasks: 0,
+                progress: 0,
+                priority: priority,
+                deadline: deadline,
+                createdAt: new Date().toISOString(),
+                studyTime: 0,
+                lastStudied: null
+            };
+
+            // Clear form
+            document.getElementById('subjectName').value = '';
+            document.getElementById('topicName').value = '';
+            document.getElementById('totalTasks').value = '10';
+            document.getElementById('priority').value = 'medium';
+            document.getElementById('deadline').value = '';
+
+            saveData();
+            showNotification(`Added "${topicName}" to ${subjectName}! 🎉`);
+            updateDisplay();
+        }
+
+        function updateProgress(subject, topic, completed) {
+            const totalTasks = studyPlan[subject][topic].totalTasks;
+            const completedTasks = Math.max(0, Math.min(parseInt(completed) || 0, totalTasks));
+            
+            const wasCompleted = studyPlan[subject][topic].progress === 100;
+            studyPlan[subject][topic].completedTasks = completedTasks;
+            studyPlan[subject][topic].progress = Math.round((completedTasks / totalTasks) * 100);
+            studyPlan[subject][topic].lastStudied = new Date().toISOString();
+
+            // Celebration for completion
+            if (studyPlan[subject][topic].progress === 100 && !wasCompleted) {
+                celebrateCompletion();
+                showNotification(`🎊 Congratulations! You've completed "${topic}"!`);
+                studyStreak++;
+            }
+
+            saveData();
+            updateDisplay();
+        }
+
+        function startTimer(subject, topic) {
+            const key = `${subject}-${topic}`;
+            if (activeTimers[key]) {
+                clearInterval(activeTimers[key].interval);
+                delete activeTimers[key];
+                showNotification(`Timer stopped for ${topic}`);
+            } else {
+                activeTimers[key] = {
+                    startTime: Date.now(),
+                    interval: setInterval(() => updateTimer(subject, topic), 1000)
+                };
+                showNotification(`Timer started for ${topic}! ⏰`);
+            }
+            updateDisplay();
+        }
+
+        function updateTimer(subject, topic) {
+            const key = `${subject}-${topic}`;
+            if (activeTimers[key]) {
+                const elapsed = Math.floor((Date.now() - activeTimers[key].startTime) / 1000);
+                // update cumulative study time per-second
+                studyPlan[subject][topic].studyTime += 1;
+                totalStudyTime += 1;
+                
+                const timerElement = document.getElementById(`timer-${subject}-${topic}`);
+                if (timerElement) {
+                    const hours = Math.floor(elapsed / 3600);
+                    const minutes = Math.floor((elapsed % 3600) / 60);
+                    const seconds = elapsed % 60;
+                    timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+
+                // Throttle saves to every TIMER_SAVE_INTERVAL ms
+                const now = Date.now();
+                if (now - lastTimerSave > TIMER_SAVE_INTERVAL) {
+                    lastTimerSave = now;
+                    saveData();
+                    updateStats(); // update displayed totals occasionally
+                }
+            }
+        }
+
+        function deleteTopic(subject, topic) {
+            if (confirm(`Are you sure you want to delete "${topic}" from ${subject}?`)) {
+                // stop timer if running
+                const key = `${subject}-${topic}`;
+                if (activeTimers[key]) {
+                    clearInterval(activeTimers[key].interval);
+                    delete activeTimers[key];
+                }
+
+                delete studyPlan[subject][topic];
+                
+                // Remove subject if no topics left
+                if (Object.keys(studyPlan[subject]).length === 0) {
+                    delete studyPlan[subject];
+                }
+
+                saveData();
+                showNotification(`Deleted "${topic}" from ${subject}`);
+                updateDisplay();
+            }
+        }
+
+        function editTopic(subject, topic) {
+            const newTopicName = prompt('Enter new topic name:', topic);
+            const newTotalTasks = prompt('Enter new total tasks:', studyPlan[subject][topic].totalTasks);
+
+            if (newTopicName && newTotalTasks && !isNaN(newTotalTasks)) {
+                const topicData = studyPlan[subject][topic];
+                delete studyPlan[subject][topic];
+                
+                studyPlan[subject][newTopicName] = {
+                    ...topicData,
+                    totalTasks: parseInt(newTotalTasks),
+                    completedTasks: Math.min(topicData.completedTasks, parseInt(newTotalTasks))
+                };
+                
+                // Recalculate progress
+                const completed = studyPlan[subject][newTopicName].completedTasks;
+                const total = studyPlan[subject][newTopicName].totalTasks;
+                studyPlan[subject][newTopicName].progress = Math.round((completed / total) * 100);
+
+                saveData();
+                showNotification(`Updated "${newTopicName}"!`);
+                updateDisplay();
+            }
+        }
+
+        function toggleBulkAdd() {
+            const bulkText = prompt('Enter topics (one per line, format: Subject|Topic|Tasks|Priority):\nExample:\nMath|Calculus|20|high\nPhysics|Mechanics|15|medium');
+            
+            if (bulkText) {
+                const lines = bulkText.split('\n').filter(line => line.trim());
+                let added = 0;
+                
+                lines.forEach(line => {
+                    const parts = line.split('|').map(p => p.trim());
+                    if (parts.length >= 3) {
+                        const [subject, topic, tasks, priority = 'medium'] = parts;
+                        
+                        if (!studyPlan[subject]) {
+                            studyPlan[subject] = {};
+                        }
+                        
+                        studyPlan[subject][topic] = {
+                            totalTasks: parseInt(tasks) || 10,
+                            completedTasks: 0,
+                            progress: 0,
+                            priority: priority,
+                            deadline: '',
+                            createdAt: new Date().toISOString(),
+                            studyTime: 0,
+                            lastStudied: null
+                        };
+                        added++;
+                    }
+                });
+                
+                saveData();
+                showNotification(`Added ${added} topics! 🎉`);
+                updateDisplay();
+            }
+        }
+
+        function exportData() {
+            const data = {
+                studyPlan,
+                studyStreak,
+                totalStudyTime,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'study-plan-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Study plan exported! 📁');
+        }
+
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            document.body.style.filter = darkMode ? 'invert(1) hue-rotate(180deg)' : '';
+            showNotification(darkMode ? 'Dark mode activated! 🌙' : 'Light mode activated! ☀️');
+        }
+
+        function showMotivation() {
+            const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            const quotesDiv = document.getElementById('motivationalQuotes');
+            document.getElementById('currentQuote').textContent = `"${quote[0]}"`;
+            document.getElementById('currentAuthor').textContent = `- ${quote[1]}`;
+            quotesDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                quotesDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function getPriorityColor(priority) {
+            switch(priority) {
+                case 'high': return 'var(--danger)';
+                case 'medium': return 'var(--warning)';
+                case 'low': return 'var(--success)';
+                default: return 'var(--primary)';
+            }
+        }
+
+        function getTopicBadge(progress) {
+            if (progress === 0) return 'badge-not-started';
+            if (progress === 100) return 'badge-completed';
+            return 'badge-in-progress';
+        }
+
+        function getTopicBadgeText(progress) {
+            if (progress === 0) return 'Not Started';
+            if (progress === 100) return 'Completed';
+            return 'In Progress';
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        }
+
+        function isOverdue(deadline) {
+            if (!deadline) return false;
+            return new Date(deadline) < new Date();
+        }
+
+        function updateStats() {
+            const totalSubjects = Object.keys(studyPlan).length;
+            let totalTopics = 0;
+            let completedTopics = 0;
+            let totalProgress = 0;
+
+            for (let subject in studyPlan) {
+                for (let topic in studyPlan[subject]) {
+                    totalTopics++;
+                    if (studyPlan[subject][topic].progress === 100) {
+                        completedTopics++;
+                    }
+                    totalProgress += studyPlan[subject][topic].progress;
+                }
+            }
+
+            const overallProgress = totalTopics > 0 ? Math.round(totalProgress / totalTopics) : 0;
+
+            document.getElementById('totalSubjects').textContent = totalSubjects;
+            document.getElementById('totalTopics').textContent = totalTopics;
+            document.getElementById('completedTopics').textContent = completedTopics;
+            document.getElementById('overallProgress').textContent = overallProgress + '%';
+            document.getElementById('studyStreak').textContent = studyStreak;
+            document.getElementById('totalStudyTime').textContent = formatTime(totalStudyTime);
+
+            // Show/hide stats overview
+            const statsOverview = document.getElementById('statsOverview');
+            if (totalSubjects > 0) {
+                statsOverview.style.display = 'block';
+            } else {
+                statsOverview.style.display = 'none';
+            }
+        }
+
+        function updateDisplay() {
+            const container = document.getElementById('subjectsContainer');
+            
+            if (Object.keys(studyPlan).length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>🎓 Ready to Unlock Your Potential?</h2>
+                        <p>Create your first study plan and watch your knowledge grow exponentially!</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('subjectName').focus()">
+                            🚀 Start Your Journey
+                        </button>
+                    </div>
+                `;
+                updateStats();
+                return;
+            }
+
+            let html = '<div class="subjects-grid">';
+            
+            for (let subject in studyPlan) {
+                const topics = studyPlan[subject];
+                const subjectTopicsCount = Object.keys(topics).length;
+                const completedTopicsCount = Object.values(topics).filter(t => t.progress === 100).length;
+                const subjectProgress = subjectTopicsCount > 0 ? Math.round(completedTopicsCount / subjectTopicsCount * 100) : 0;
+
+                html += `
+                    <div class="subject-card glass-card">
+                        <div class="subject-header">
+                            <h3 class="subject-title">${subject}</h3>
+                            <span class="subject-progress">${subjectProgress}% Complete</span>
+                        </div>
+                        <div class="topic-list">
+                `;
+
+                for (let topic in topics) {
+                    const data = topics[topic];
+                    const key = `${subject}-${topic}`;
+                    const isActive = activeTimers[key];
+                    const badgeClass = getTopicBadge(data.progress);
+                    const badgeText = getTopicBadgeText(data.progress);
+                    const isTopicOverdue = isOverdue(data.deadline);
+                    
+                    html += `
+                        <div class="topic-item" style="border-left-color: ${getPriorityColor(data.priority)}">
+                            <div class="topic-header">
+                                <div class="topic-name">
+                                    ${topic}
+                                    ${isTopicOverdue ? '<span style="color: #ff6b6b;">⚠️</span>' : ''}
+                                </div>
+                                <div class="topic-badge ${badgeClass}">${badgeText}</div>
+                            </div>
+                            
+                            <div class="progress-section">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: ${data.progress}%"></div>
+                                </div>
+                                <div class="progress-stats">
+                                    <span>${data.completedTasks}/${data.totalTasks} tasks</span>
+                                    <span>${data.progress}% complete</span>
+                                </div>
+                            </div>
+
+                            <div class="task-controls">
+                                <div class="task-input-group">
+                                    <label>Completed:</label>
+                                    <input type="number" class="task-input" 
+                                           value="${data.completedTasks}" 
+                                           min="0" 
+                                           max="${data.totalTasks}"
+                                           onchange="updateProgress('${subject}', '${topic}', this.value)">
+                                    <span>/ ${data.totalTasks}</span>
+                                </div>
+                                
+                                ${data.studyTime > 0 ? `<div class="streak-indicator">⏱️ ${formatTime(data.studyTime)}</div>` : ''}
+                                ${data.deadline ? `<div class="streak-indicator ${isTopicOverdue ? 'badge-not-started' : 'badge-in-progress'}">📅 ${new Date(data.deadline).toLocaleDateString()}</div>` : ''}
+                            </div>
+
+                            ${isActive ? `
+                                <div class="time-tracker">
+                                    <div class="timer-display" id="timer-${subject}-${topic}">00:00:00</div>
+                                    <div class="timer-controls">
+                                        <button class="btn btn-danger btn-small" onclick="startTimer('${subject}', '${topic}')">
+                                            ⏹️ Stop Timer
+                                        </button>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <div class="topic-actions">
+                                <button class="btn btn-success btn-small" onclick="startTimer('${subject}', '${topic}')">
+                                    ${isActive ? '⏹️ Stop' : '⏰ Start'} Timer
+                                </button>
+                                <button class="btn btn-warning btn-small" onclick="editTopic('${subject}', '${topic}')">
+                                    ✏️ Edit
+                                </button>
+                                <button class="btn btn-danger btn-small" onclick="deleteTopic('${subject}', '${topic}')">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            updateStats();
+        }
+
+        // Initialize the app
+        function initializeApp() {
+            createFloatingShapes();
+
+            const hadSaved = loadData();
+            if (hadSaved) {
+                showNotification('Loaded saved study plan ✅');
+            }
+
+            updateDisplay();
+            
+            // Set default deadline only if input is empty (so loaded value not overridden)
+            const deadlineInput = document.getElementById('deadline');
+            if (!deadlineInput.value) {
+                const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                deadlineInput.value = nextWeek;
+            }
+            
+            // Show welcome message
+            setTimeout(() => {
+                showMotivation();
+            }, 1000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                addTopic();
+            }
+            if (e.ctrlKey && e.key === 'm') {
+                e.preventDefault();
+                showMotivation();
+            }
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportData();
+            }
+        });
+
+        // Auto-save every 30 seconds (redundant but safe)
+        setInterval(() => {
+            if (Object.keys(studyPlan).length > 0) {
+                saveData();
+                console.log('Auto-saving study plan...');
+            }
+        }, 30000);
+
+        initializeApp();
+    </script>
+</body>
+</html>
